@@ -1,0 +1,6 @@
+{
+	"name":"homegear",
+	"dependencies":{
+    	"binrpc": "^3.0.0"
+	}
+}

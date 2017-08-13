@@ -1,0 +1,8 @@
+{
+	"ipLocal":"192.168.178.140",
+	"portLocal":"2001",
+	"ipCCU":"192.168.178.141",
+	"portCCU":"2001",
+	"version":"0.0.1",
+	"loglevel":1
+}
