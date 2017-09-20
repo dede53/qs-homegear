@@ -34,6 +34,18 @@ process.on("message", function(request){
 					}
 				});
 				break;
+			case "dimmer":
+				homegear.log.debug(data.CodeOn, status);
+				rpcClient.methodCall('setValue', [data.CodeOn, "LEVEL", status], function (err, res) {
+					if(err){
+						homegear.log.error(JSON.stringify(err));
+						homegear.log.error(JSON.stringify(res));
+					}else{
+						devices[data.CodeOn] = data;
+						devices[data.CodeOn].status = status;
+					}
+				});
+				break;
 			default:
 				homegear.log.error("Problem mit dem Protocol:" + data.protocol);
 				break;
@@ -42,16 +54,16 @@ process.on("message", function(request){
 });
 
 rpcServer.on('system.listMethods', function (err, params, callback) {
-	callback(null, ['system.listMethods', 'system.multicall', 'event', 'listDevices']);
+	callback(null, ['system.listMethods', 'system.multicall', 'event']);
 });
 
-rpcServer.on('listDevices', function (err, params, callback) {
-	callback(null, []);
-});
+/*rpcServer.on('listDevices', function (err, params, callback) {
+	callback(undefined, []);
+});*/
 
 rpcServer.on('event', function (err, params, callback) {
 	handleEvent(params);
-	callback(null, '');
+	callback(undefined, '');
 });
 
 rpcServer.on('system.multicall', function (err, params, callback) {
@@ -59,7 +71,7 @@ rpcServer.on('system.multicall', function (err, params, callback) {
 	params[0].forEach(function (call) {
 		handleEvent(call);
 	});
-	callback(null, '');
+	callback(undefined, '');
 });
 
 subscribe();
@@ -81,6 +93,7 @@ function subscribe() {
 
 function handleEvent(call){
 	var params = call.params;
+	homegear.log.debug(JSON.stringify(params));
 	switch(params[2]){
 		case "LEVEL":
 			var status = parseFloat(params[3]);
@@ -90,11 +103,19 @@ function handleEvent(call){
 				homegear.setDeviceStatus(devices[params[1]].deviceid, status);
 			}
 			break;
+		// case "LEVEL_REAL":
+		// 	var status = parseFloat(params[3]);
+		// 	homegear.log.debug("Status: " + params[1] + " " + status);
+		// 	if(typeof devices[params[1]] == 'object'){
+		// 		devices[params[1]].status = status;
+		// 		homegear.setDeviceStatus(devices[params[1]].deviceid, status);
+		// 	}
+		// 	break;
 		case "WORKING":
 		case "DIRECTION":
 			break;
 		default:
-			homegear.log.debug(JSON.stringify(params));
+			// homegear.log.debug(JSON.stringify(params));
 			break;
 	}
 }
