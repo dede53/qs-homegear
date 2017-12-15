@@ -6,6 +6,10 @@ var homegearPort			=	parseInt(homegear.settings.portLocal);
 var rpcServer				=	rpc.createServer({host: homegear.settings.ipLocal, port: homegearPort});
 var rpcClient				=	rpc.createClient({host: homegear.settings.ipCCU, port: homegear.settings.portCCU});
 
+rpcServer.on("error", function(err){
+    console.log(err);
+});
+
 process.on("message", function(request){
 	var data				= request.data;
 	var status				= request.status;
