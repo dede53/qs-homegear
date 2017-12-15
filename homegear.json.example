@@ -4,5 +4,6 @@
 	"ipCCU":"192.168.178.141",
 	"portCCU":"2001",
 	"version":"0.0.1",
-	"loglevel":1
+	"loglevel":1,
+    "reconnectIntervalSec":60
 }
