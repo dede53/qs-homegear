@@ -6,22 +6,20 @@ var homegearPort			=	parseInt(homegear.settings.portLocal);
 var rpcServer				=	rpc.createServer({host: homegear.settings.ipLocal, port: homegearPort});
 var rpcClient				=	rpc.createClient({host: homegear.settings.ipCCU, port: homegear.settings.portCCU});
 
-process.on("message", function(request){
-	var data				= request.data;
-	var status				= request.status;
+process.on("message", function(data){
 	if(data){
 		switch(data.protocol){
 			case "setSetting":
 				homegear.setSetting(data);
 				break;
 			case "shutter":
-				homegear.log.debug(data.CodeOn, status);
-				if(status == "stop"){
+				homegear.log.debug(data.CodeOn, data.newStatus);
+				if(data.newStatus == "stop"){
 					var type = "STOP";
 					var value = true;
 				}else{
 					var type = "LEVEL";
-					var value = status;
+					var value = data.newStatus;
 				}
 				rpcClient.methodCall('setValue', [data.CodeOn, type, value], function (err, res) {
 					homegear.log.debug(err);
@@ -35,8 +33,11 @@ process.on("message", function(request){
 				});
 				break;
 			case "dimmer":
-				homegear.log.debug(data.CodeOn, status);
-				rpcClient.methodCall('setValue', [data.CodeOn, "LEVEL", status], function (err, res) {
+				homegear.log.debug(data.CodeOn, data.newStatus);
+				if(data.newStatus == "toggle"){
+					data.newStatus = 1 - data.status; // 1 - 0.7 = 0.3;
+				}
+				rpcClient.methodCall('setValue', [data.CodeOn, "LEVEL", data.newStatus], function (err, res) {
 					if(err){
 						homegear.log.error(JSON.stringify(err));
 						homegear.log.error(JSON.stringify(res));
