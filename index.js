@@ -75,20 +75,45 @@ rpcServer.on('system.multicall', function (err, params, callback) {
 	callback(undefined, '');
 });
 
-subscribe();
+subscribe(function(err){
+    if(err == "EHOSTUNREACH"){
+        var reconnectInterval = setInterval(function(){
+            subscribe(function(err){
+                if(err != "EHOSTUNREACH" && err != undefined){
+                    // clearInterval(reconnectInterval);
+                }
+            });
+        }, homegear.settings.reconnectIntervalSec * 1000 || 60 * 1000);
+    }else{
+    }
+});
 
 /**
  * Tell the CCU that we want to receive events
  */
-function subscribe() {
-	homegear.log.debug('xmlrpc_bin://' + homegear.settings.ipLocal + ':' + homegearPort);
+function subscribe(callback) {
 	rpcClient.methodCall('init', ['xmlrpc_bin://' + homegear.settings.ipLocal + ':' + homegearPort , 'QuickSwitch'], function (err, res) {
 		if(err){
-			homegear.log.error(err);
+            switch(err.code){
+                case "EHOSTUNREACH":
+                    homegear.log.error("Homegear ist nicht erreichbar (" + err.address + ":" + err.port + ")");
+                    process.send({"statusMessage":"Homegear ist nicht erreichbar (" + err.address + ":" + err.port + ")"});
+                    break;
+                case undefined:
+                case "undefined":
+                    homegear.log.error("Undefinierter Fehler: vermutlich ist Homegear nicht erreichbar (" + homegear.settings.ipCCU + ":" + homegear.settings.portCCU + ")");
+                    process.send({"statusMessage":"Undefinierter Fehler: vermutlich ist Homegear nicht erreichbar (" + homegear.settings.ipCCU + ":" + homegear.settings.portCCU + ")"});
+                    break;
+                default:
+                    homegear.log.error(err);
+                    process.send({"statusMessage": err});
+                    break;
+            }
+            callback(err.code);
 		}else{
 			homegear.log.debug(res);
+            process.send({"statusMessage": "Läut auf Port:" + homegearPort});
 		}
-		process.send({"statusMessage": "Läut auf Port:" + homegearPort});
 	});
 }
 
