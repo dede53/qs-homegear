@@ -6,7 +6,7 @@ var homegearPort			=	parseInt(homegear.settings.portLocal);
 var rpcServer				=	rpc.createServer({host: homegear.settings.ipLocal, port: homegearPort});
 var rpcClient				=	rpc.createClient({host: homegear.settings.ipCCU, port: homegear.settings.portCCU});
 
-process.on("message", function(data){
+homegear.on("homegear", function(data){
 	if(data){
 		switch(data.protocol){
 			case "setSetting":
